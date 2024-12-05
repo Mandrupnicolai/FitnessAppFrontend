@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "FrontendApp",
-    "slug": "FrontendApp",
+    "name": "Fitness App",
+    "slug": "fitness-app-frontend",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -15,16 +15,21 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "newArchEnabled": true
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "newArchEnabled": true
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "experiments": {
+      "tsconfigPaths": true
     }
   }
 }

@@ -1,0 +1,163 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Fitness Application Infrastructure",
+  "Parameters": {
+    "Environment": {
+      "Type": "String",
+      "Default": "dev",
+      "AllowedValues": ["dev", "prod"],
+      "Description": "Environment type"
+    }
+  },
+  "Resources": {
+    "CognitoUserPool": {
+      "Type": "AWS::Cognito::UserPool",
+      "Properties": {
+        "UserPoolName": {"Fn::Sub": "fitness-app-user-pool-${Environment}"},
+        "AutoVerifiedAttributes": ["email"],
+        "UsernameAttributes": ["email"],
+        "Policies": {
+          "PasswordPolicy": {
+            "MinimumLength": 8,
+            "RequireLowercase": true,
+            "RequireNumbers": true,
+            "RequireSymbols": false,
+            "RequireUppercase": true
+          }
+        }
+      }
+    },
+    "UserPoolClient": {
+      "Type": "AWS::Cognito::UserPoolClient",
+      "Properties": {
+        "UserPoolId": {"Ref": "CognitoUserPool"},
+        "ClientName": {"Fn::Sub": "fitness-app-client-${Environment}"},
+        "GenerateSecret": false,
+        "ExplicitAuthFlows": [
+          "ALLOW_USER_PASSWORD_AUTH",
+          "ALLOW_REFRESH_TOKEN_AUTH"
+        ]
+      }
+    },
+    "UsersTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "TableName": {"Fn::Sub": "fitness-users-${Environment}"},
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "userId",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "userId",
+            "KeyType": "HASH"
+          }
+        ],
+        "BillingMode": "PAY_PER_REQUEST",
+        "Tags": [
+          {
+            "Key": "awsApplication",
+            "Value": "arn:aws:resource-groups:eu-north-1:013579844657:group/FitnessApplication/0dfsy26tw15qj59ipsmhtllieh"
+          }
+        ]
+      }
+    },
+    "WorkoutsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "TableName": {"Fn::Sub": "fitness-workouts-${Environment}"},
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "workoutId",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "userId",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "workoutId",
+            "KeyType": "HASH"
+          },
+          {
+            "AttributeName": "userId",
+            "KeyType": "RANGE"
+          }
+        ],
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "UserWorkouts",
+            "KeySchema": [
+              {
+                "AttributeName": "userId",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "workoutId",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          }
+        ],
+        "BillingMode": "PAY_PER_REQUEST",
+        "Tags": [
+          {
+            "Key": "awsApplication",
+            "Value": "arn:aws:resource-groups:eu-north-1:013579844657:group/FitnessApplication/0dfsy26tw15qj59ipsmhtllieh"
+          }
+        ]
+      }
+    },
+    "LambdaExecutionRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "ManagedPolicyArns": [
+          "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+        ],
+        "Tags": [
+          {
+            "Key": "awsApplication",
+            "Value": "arn:aws:resource-groups:eu-north-1:013579844657:group/FitnessApplication/0dfsy26tw15qj59ipsmhtllieh"
+          }
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "UserPoolId": {
+      "Description": "ID of the Cognito User Pool",
+      "Value": {"Ref": "CognitoUserPool"}
+    },
+    "UserPoolClientId": {
+      "Description": "ID of the Cognito User Pool Client",
+      "Value": {"Ref": "UserPoolClient"}
+    },
+    "UsersTableName": {
+      "Description": "Name of the Users DynamoDB table",
+      "Value": {"Ref": "UsersTable"}
+    },
+    "WorkoutsTableName": {
+      "Description": "Name of the Workouts DynamoDB table",
+      "Value": {"Ref": "WorkoutsTable"}
+    }
+  }
+}

@@ -1,0 +1,134 @@
+service: fitness-app-backend
+
+provider:
+  name: aws
+  runtime: nodejs16.x
+  region: eu-north-1
+  environment:
+    COGNITO_USER_POOL_ID: eu-north-1_wvbOhjuQs
+    COGNITO_CLIENT_ID: 2iifllf6f67ctcfq3gvm9jls0j
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource:
+        - "arn:aws:dynamodb:${self:provider.region}:013579844657:table/fitness_users"
+        - "arn:aws:dynamodb:${self:provider.region}:013579844657:table/fitness_workouts"
+    - Effect: Allow
+      Action:
+        - cognito-idp:AdminInitiateAuth
+        - cognito-idp:AdminCreateUser
+        - cognito-idp:AdminSetUserPassword
+      Resource: "arn:aws:cognito-idp:${self:provider.region}:013579844657:userpool/${self:provider.environment.COGNITO_USER_POOL_ID}"
+
+functions:
+  # Auth Functions
+  register:
+    handler: functions/auth.register
+    events:
+      - http:
+          path: /auth/register
+          method: post
+          cors: true
+
+  login:
+    handler: functions/auth.login
+    events:
+      - http:
+          path: /auth/login
+          method: post
+          cors: true
+
+  # User Functions
+  getUserProfile:
+    handler: functions/users.getUserProfile
+    events:
+      - http:
+          path: /users/profile
+          method: get
+          cors: true
+          authorizer:
+            name: cognitoAuthorizer
+            type: COGNITO_USER_POOLS
+            arn: "arn:aws:cognito-idp:${self:provider.region}:013579844657:userpool/${self:provider.environment.COGNITO_USER_POOL_ID}"
+
+  updateUserProfile:
+    handler: functions/users.updateUserProfile
+    events:
+      - http:
+          path: /users/profile
+          method: put
+          cors: true
+          authorizer:
+            name: cognitoAuthorizer
+            type: COGNITO_USER_POOLS
+            arn: "arn:aws:cognito-idp:${self:provider.region}:013579844657:userpool/${self:provider.environment.COGNITO_USER_POOL_ID}"
+
+  getUserStats:
+    handler: functions/users.getUserStats
+    events:
+      - http:
+          path: /users/stats
+          method: get
+          cors: true
+          authorizer:
+            name: cognitoAuthorizer
+            type: COGNITO_USER_POOLS
+            arn: "arn:aws:cognito-idp:${self:provider.region}:013579844657:userpool/${self:provider.environment.COGNITO_USER_POOL_ID}"
+
+  logWeight:
+    handler: functions/users.logWeight
+    events:
+      - http:
+          path: /users/weight
+          method: post
+          cors: true
+          authorizer:
+            name: cognitoAuthorizer
+            type: COGNITO_USER_POOLS
+            arn: "arn:aws:cognito-idp:${self:provider.region}:013579844657:userpool/${self:provider.environment.COGNITO_USER_POOL_ID}"
+
+  # Workout Functions
+  createWorkout:
+    handler: functions/workouts.createWorkout
+    events:
+      - http:
+          path: /workouts
+          method: post
+          cors: true
+          authorizer:
+            name: cognitoAuthorizer
+            type: COGNITO_USER_POOLS
+            arn: "arn:aws:cognito-idp:${self:provider.region}:013579844657:userpool/${self:provider.environment.COGNITO_USER_POOL_ID}"
+
+  getUserWorkouts:
+    handler: functions/workouts.getUserWorkouts
+    events:
+      - http:
+          path: /workouts
+          method: get
+          cors: true
+          authorizer:
+            name: cognitoAuthorizer
+            type: COGNITO_USER_POOLS
+            arn: "arn:aws:cognito-idp:${self:provider.region}:013579844657:userpool/${self:provider.environment.COGNITO_USER_POOL_ID}"
+
+  completeWorkout:
+    handler: functions/workouts.completeWorkout
+    events:
+      - http:
+          path: /workouts/{workoutId}/complete
+          method: post
+          cors: true
+          authorizer:
+            name: cognitoAuthorizer
+            type: COGNITO_USER_POOLS
+            arn: "arn:aws:cognito-idp:${self:provider.region}:013579844657:userpool/${self:provider.environment.COGNITO_USER_POOL_ID}"
+
+plugins:
+  - serverless-offline

@@ -1,14 +1,29 @@
 import React from 'react';
+import { StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const BackgroundLinear = ({ children }) => {
   return (
-    <LinearGradient
-      colors={['#3498db', '#9DCEFF']}
-      style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: '10%' }}>
-      {children}
-    </LinearGradient>
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#ffffff', '#f0f0f0']}
+        style={styles.gradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      >
+        {children}
+      </LinearGradient>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  gradient: {
+    flex: 1,
+  },
+});
 
 export default BackgroundLinear;
